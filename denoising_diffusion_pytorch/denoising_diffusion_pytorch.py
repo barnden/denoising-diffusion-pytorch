@@ -684,6 +684,11 @@ class GaussianDiffusion(nn.Module):
         assert h == img_size and w == img_size, f'height and width of image must be {img_size}'
         t = torch.randint(0, self.num_timesteps, (b,), device=device).long()
 
+        coords = torch.cartesian_prod(*(torch.arange(img_size, device=device),) * 2)
+        coords = coords.reshape(img_size, img_size, 2).permute(-1, 1, 0) / (img_size - 1)
+        coords = coords[None, ...].repeat(b, 1, 1, 1)
+
+        img = torch.concat((img, coords), dim=1)
         img = normalize_to_neg_one_to_one(img)
         return self.p_losses(img, t, *args, **kwargs)
 
